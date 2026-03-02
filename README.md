@@ -11,7 +11,7 @@ md-webserver is a minimalist [Markdown](https://daringfireball.net/projects/mark
 ## Usage Examples
 ### Minimal
 ```shell
-guile -c "(use-modules (md-webserver)) (start-webserver '())"
+guile -c "(use-modules (md-webserver main)) (start-webserver '())"
 ```
 
 ### Typical
