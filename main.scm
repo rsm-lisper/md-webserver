@@ -73,8 +73,9 @@
                               path-oryg)]
                [full-path (string-append (assq-ref site-conf #:content-dir)
                                          (string-join path-real "/"))])
-          (format #t "[~a] Serving file ~s [uri: ~s]~%"
-                  (curdate-str) full-path path-real)
+          (simple-format
+           #t "[~a] Serving file ~s, URI: ~s, Req Method: ~a, Req From: ~a~%"
+           (curdate-str) full-path path-real (request-method req) (request-from req))
           (cond ([and (path-safe? path-real) (file-exists? full-path)]
                  (case [string->symbol (string-downcase (file-ext full-path))]
                    ([md] (values
@@ -96,17 +97,18 @@
                    ([png] (send-file full-path '(image/png)))
                    ([ico] (send-file full-path '(image/x-icon)))
                    (else
-                    (format (current-error-port)
-                            "[~a] Warning! Unsupported Media Type: ~s~%"
-                            (curdate-str) path-real)
+                    (simple-format (current-error-port)
+                                   "[~a] Warning! Unsupported Media Type: ~s~%"
+                                   (curdate-str) path-real)
                     (values
                      (build-response #:code 415
                                      #:headers '((content-type . (text/plain))))
-                     (format #f "Unsupported Media Type: ~a"
-                             (file-ext (car (last-pair path-real))))))))
+                     (simple-format #f "Unsupported Media Type: ~a"
+                                    (file-ext (car (last-pair path-real))))))))
                 (else
-                 (format (current-error-port)
-                         "[~a] Warning! File Not Found: ~s~%" (curdate-str) path-real)
+                 (simple-format
+                  (current-error-port) "[~a] Warning! File Not Found: ~s~%"
+                  (curdate-str) path-real)
                  (values
                   (build-response #:code 404
                                   #:headers '((content-type . (text/plain))))
@@ -114,7 +116,7 @@
       (λ (key . args)
         (let ([err-desc (format #f "Error! ~a: ~a. ~?~%"
                                 key (car args) (cadr args) (caddr args))])
-          (format (current-error-port) "[~a] ~a" (curdate-str) err-desc)
+          (simple-format (current-error-port) "[~a] ~a" (curdate-str) err-desc)
           (values
            (build-response #:code 500
                            #:headers '((content-type . (text/plain))))
@@ -124,6 +126,6 @@
 (define (start-webserver site-conf)
   (let* ([conf (append site-conf default-conf)]
          [http-args (append (assq #:addr conf) (assq #:port conf))])
-    (format #t "[~a] Starting md-webserver ~s~%" (curdate-str) http-args)
+    (simple-format #t "[~a] Starting md-webserver ~s~%" (curdate-str) http-args)
     (run-server (gen-req-handler conf) 'http http-args)
-    (format #t "[~a] Stopping md-webserver~%" (curdate-str))))
+    (simple-format #t "[~a] Stopping md-webserver~%" (curdate-str))))
